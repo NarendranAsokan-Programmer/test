@@ -1,0 +1,340 @@
+1.
+Valid means - no padding
+same - add padding
+
+# Define input and filters
+x = [[0, 6, 5, 0, 9, 2],
+     [2, 1, 3, 1, 3, 8],
+     [4, 9, 4, 2, 7, 8],
+     [8, 8, 0, 5, 2, 2],
+     [2, 8, 7, 2, 4, 7],
+     [1, 6, 4, 9, 7, 2]]
+
+f3 = [[2, 1, -2],
+      [0, 1, -2],
+      [-2, -3, -3]]
+
+x=np.array(x)
+f3=np.array(f3)
+
+x=np.pad(x,1,constant_values=0)
+
+#lets find the output size of the matrix
+
+rows_input,columns_input=x.shape
+print(rows_input,columns_input)
+
+rows_filter,columns_filter=f3.shape
+print(rows_filter,columns_filter)
+
+rows_output=rows_input-f3.shape[0]+1
+print(rows_output)
+columns_output=columns_input-f3.shape[1]+1
+print(columns_output)
+
+#creating zero array
+
+outputarray=np.zeros((rows_output,columns_output))
+print(outputarray)
+
+#now lets fill the values
+for i in range(outputarray.shape[0]):
+  for j in range(outputarray.shape[1]):
+    region=x[i:i+f3.shape[0],j:j+f3.shape[1]]
+    outputarray[i][j]=np.sum(region*f3)
+    print(outputarray)
+
+==
+2.
+Pooling layer
+
+import numpy as np
+
+def pooling_operation(input_matrix, pool_size, stride, mode='max'):
+    """
+    Perform pooling operation on an input matrix with specified pool size, stride, and mode.
+    
+    Parameters:
+    - input_matrix (2D numpy array): The input matrix for pooling.
+    - pool_size (tuple): The size of the pooling window (height, width).
+    - stride (int): The stride length for the pooling window.
+    - mode (str): Pooling mode, 'max' for Max Pooling and 'avg' for Average Pooling.
+    
+    Returns:
+    - 2D numpy array: The result of the pooling operation.
+    """
+    h, w = input_matrix.shape
+    pool_height, pool_width = pool_size
+    
+    # Calculate output dimensions
+    out_height = (h - pool_height) // stride + 1
+    out_width = (w - pool_width) // stride + 1
+    
+    # Initialize the output matrix
+    output = np.zeros((out_height, out_width))
+    
+    for i in range(out_height):
+        for j in range(out_width):
+            # Define the current window
+            h_start = i * stride
+            h_end = h_start + pool_height
+            w_start = j * stride
+            w_end = w_start + pool_width
+            window = input_matrix[h_start:h_end, w_start:w_end]
+            
+            # Apply the pooling operation
+            if mode == 'max':
+                output[i, j] = np.max(window)
+            elif mode == 'avg':
+                output[i, j] = np.mean(window)
+    
+    return output
+
+# Example usage
+input_matrix = np.array([[ -1,   6,  -4,  -1,  -9,  -5],
+       [  9,  -5,   7,   0,  -6,   5],
+       [  2,   7,  -5,  -7,   8,  -1],
+       [-10,   3,   8,   9,   2,   7],
+       [  5,  -7,   5,   2,   0,   7],
+       [-10,   0,  -5, -10,  -7,   8]])
+
+# Test configurations
+configs = [
+    ((2, 2), 2, 'max'),
+    ((3, 3), 2, 'max'),
+    ((2, 2), 1, 'max'),
+    ((3, 3), 1, 'max'),
+    ((2, 2), 2, 'avg'),
+    ((3, 3), 2, 'avg'),
+    ((2, 2), 1, 'avg'),
+    ((3, 3), 1, 'avg')
+]
+
+# Apply each configuration
+for pool_size, stride, mode in configs:
+    result = pooling_operation(input_matrix, pool_size, stride, mode)
+    print(f"Pool Size: {pool_size}, Stride: {stride}, Mode: {mode}")
+    print(result, "\n")
+==
+
+trainable parameters
+
+How many trainable parameters does the following model have:
+
+- input data has dimensions (180, 180, 3)
+- Conv2D(32, kernel_size=(5, 5), activation="relu")
+- AveragePooling(pool_size=(2, 2), strides=2)
+- Conv2D(32, kernel_size=(5, 5), activation="relu")
+- AveragePooling(pool_size=(2, 2), strides=2)
+- Flatten()
+- Dense(128, activation="relu")
+- Dense(3, activation="softmax")
+
+To calculate the trainable parameters in this model, let’s go layer by layer and determine the number of parameters based on the input dimensions and the filter/kernel settings.
+
+### Model Summary
+
+- **Input Data**: (180, 180, 3)
+
+#### 1. **Conv2D(32, kernel_size=(5, 5), activation="relu")**
+
+   - **Input Shape**: (180, 180, 3)
+   - **Filters**: 32
+   - **Kernel Size**: (5, 5)
+   - **Parameters**: Each filter has (5 * 5 * 3) weights and 1 bias. So, the total parameters are:
+     \[
+     (5 \times 5 \times 3 + 1) \times 32 = 2,432
+     \]
+   - **Output Shape**: (176, 176, 32) (since no padding is assumed, 180 - 5 + 1 = 176)
+
+#### 2. **AveragePooling(pool_size=(2, 2), strides=2)**
+
+   - **Input Shape**: (176, 176, 32)
+   - **Output Shape**: (88, 88, 32) (halved dimensions due to pooling)
+   - **Parameters**: 0 (pooling layers do not have trainable parameters)
+
+#### 3. **Conv2D(32, kernel_size=(5, 5), activation="relu")**
+
+   - **Input Shape**: (88, 88, 32)
+   - **Filters**: 32
+   - **Kernel Size**: (5, 5)
+   - **Parameters**: Each filter has (5 * 5 * 32) weights and 1 bias. So, the total parameters are:
+     \[
+     (5 \times 5 \times 32 + 1) \times 32 = 25,632
+     \]
+   - **Output Shape**: (84, 84, 32) (since 88 - 5 + 1 = 84)
+
+#### 4. **AveragePooling(pool_size=(2, 2), strides=2)**
+
+   - **Input Shape**: (84, 84, 32)
+   - **Output Shape**: (42, 42, 32)
+   - **Parameters**: 0 (pooling layers do not have trainable parameters)
+
+#### 5. **Flatten()**
+
+   - **Input Shape**: (42, 42, 32)
+   - **Output Shape**: (42 * 42 * 32) = 56,448
+   - **Parameters**: 0 (flattening does not introduce parameters)
+
+#### 6. **Dense(128, activation="relu")**
+
+   - **Input Shape**: 56,448 (from the flattening layer)
+   - **Units**: 128
+   - **Parameters**: Each unit has 56,448 weights and 1 bias. So, the total parameters are:
+     \[
+     56,448 \times 128 + 128 = 7,225,472
+     \]
+
+#### 7. **Dense(3, activation="softmax")**
+
+   - **Input Shape**: 128
+   - **Units**: 3
+   - **Parameters**: Each unit has 128 weights and 1 bias. So, the total parameters are:
+     \[
+     128 \times 3 + 3 = 387
+     \]
+
+### Total Trainable Parameters
+
+Adding up all the parameters from each layer, we get:
+\[
+2,432 + 25,632 + 7,225,472 + 387 = 7,253,923
+\]
+
+So, the total number of trainable parameters in this model is **7,253,923**.
+
+===
+
+formula to calculate the output dimension
+
+output dimension = ((input-filter+2*padding)/stride)+1
+
+===
+
+Create fully-connected and convolutional neural networks using both the
+**sequential** and the **functional** API's in Keras.
+
+cnn sequential
+
+from keras.layers import Conv2D, MaxPooling2D, Flatten
+
+# Create a convolutional neural network using Sequential API
+model_cnn_sequential = Sequential()
+model_cnn_sequential.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(height, width, channels)))  # Replace with your input shape
+model_cnn_sequential.add(MaxPooling2D(pool_size=(2, 2)))
+model_cnn_sequential.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+model_cnn_sequential.add(MaxPooling2D(pool_size=(2, 2)))
+model_cnn_sequential.add(Flatten())
+model_cnn_sequential.add(Dense(128, activation='relu'))
+model_cnn_sequential.add(Dense(num_classes, activation='softmax'))  # Replace num_classes with your output classes
+
+model_cnn_sequential.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model_cnn_sequential.summary()
+
+
+cnn functional
+
+# Create a convolutional neural network using Functional API
+
+input_layer = Input(shape=(height, width, channels))  # Replace with your input shape
+x = Conv2D(32, kernel_size=(3, 3), activation='relu')(input_layer)
+x = MaxPooling2D(pool_size=(2, 2))(x)
+x = Conv2D(64, kernel_size=(3, 3), activation='relu')(x)
+x = MaxPooling2D(pool_size=(2, 2))(x)
+x = Flatten()(x)
+x = Dense(128, activation='relu')(x)
+output_layer = Dense(num_classes, activation='softmax')(x)  # Replace num_classes with your output classes
+
+model_cnn_functional = Model(inputs=input_layer, outputs=output_layer)
+
+model_cnn_functional.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+model_cnn_functional.summary()
+
+==
+
+transfer learning
+
+Transfer learning/Fine-tuning
+ - what is it? why do we do it?
+ - import pre-trained model
+ - build a new model using all or part of pre-trained model
+ - freeze parameters
+
+Transfer learning and fine-tuning are techniques in deep learning that leverage existing models trained on large datasets to improve performance on a related task. Here’s an overview of what they are, why we use them, and how to implement them using a pre-trained model.
+
+What is Transfer Learning and Fine-Tuning?
+Transfer Learning: This is the process of taking a pre-trained model (trained on a large dataset) and applying it to a new but related task. Instead of training a model from scratch, which can be time-consuming and requires a large amount of data, transfer learning allows us to use the knowledge the model has already learned.
+
+Fine-Tuning: This is a specific form of transfer learning where we not only use a pre-trained model but also retrain some of its layers on our specific dataset. Fine-tuning typically involves adjusting the weights of the last few layers of the model while keeping the earlier layers frozen.
+
+Why Do We Use Transfer Learning and Fine-Tuning?
+Reduced Training Time: Since the model is pre-trained, it can converge faster than a model trained from scratch.
+Less Data Required: Transfer learning can be particularly useful when the new task has a smaller dataset, as the pre-trained model already has learned useful features.
+Improved Performance: Using a model that has been trained on a large and diverse dataset can improve the accuracy of the model on the new task.
+Implementation Steps
+Importing a Pre-trained Model: Use a model from a library like TensorFlow/Keras that has been pre-trained on a dataset such as ImageNet.
+Building a New Model: Modify the pre-trained model for the specific task.
+Freezing Parameters: Freeze the layers of the pre-trained model to retain their weights during training.
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# Step 1: Import a pre-trained model
+# For example, we can use the VGG16 model, pre-trained on ImageNet
+base_model = keras.applications.VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+
+# Step 2: Build a new model using the pre-trained model
+# Create a new model
+model = keras.Sequential([
+    base_model,  # Add the pre-trained model
+    layers.Flatten(),  # Flatten the output of the base model
+    layers.Dense(256, activation='relu'),  # Add a new dense layer
+    layers.Dense(10, activation='softmax')  # Output layer for 10 classes
+])
+
+# Step 3: Freeze the base model parameters
+base_model.trainable = False  # Freeze the layers of the base model
+
+# Compile the model
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Assuming we have training data and labels in `x_train` and `y_train`
+# Step 4: Train the new model on the new dataset
+history = model.fit(x_train, y_train, 
+                    epochs=10,  # Number of epochs
+                    batch_size=32,  # Batch size
+                    validation_split=0.2)  # Validation split
+
+# Optionally, you can unfreeze some layers and continue training
+# base_model.trainable = True  # Unfreeze the base model
+# Fine-tune the model (recompile if necessary)
+# model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-5),
+#               loss='sparse_categorical_crossentropy',
+#               metrics=['accuracy'])
+
+# Fine-tune the model on the new dataset
+# history_fine_tune = model.fit(x_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
+
+
+Import Pre-trained Model:
+
+The VGG16 model is imported with weights pre-trained on ImageNet. We exclude the top layer since we will add our own output layer.
+Build a New Model:
+
+A new model is built by adding a flatten layer and dense layers on top of the pre-trained model. This architecture can be modified based on the specific task.
+Freeze Parameters:
+
+By setting base_model.trainable = False, the weights of the VGG16 model are frozen, preventing them from being updated during the training phase. This means that the model retains the knowledge it has gained from the original training dataset.
+Train the New Model:
+
+The model is trained on a new dataset (x_train, y_train). We use the validation split to monitor performance during training.
+Fine-tuning (Optional):
+
+Optionally, after initial training, you can unfreeze some of the layers in the base model to allow them to be trained further, which can lead to better performance on the specific task.
+Summary
+Transfer learning and fine-tuning are powerful techniques that help utilize pre-trained models for new tasks, significantly reducing training time and improving performance, especially when dealing with smaller datasets. By leveraging existing knowledge, we can effectively adapt models to meet specific requirements.
+
+===
