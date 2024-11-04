@@ -2,43 +2,47 @@ headers = {
     'Cache-Control': 'no-cache',  # Instructs the browser and server not to cache
     'Pragma': 'no-cache'          # HTTP/1.0 compatibility; often used with Cache-Control
 }
-.
-.
-.
-.
-.
-.
-Ans3: 
+-------------------------------------------------------------------------------------
+Ans 11: To make only the layers in the last block of your pretrained model trainable, you can iterate through the layers in the model and set the trainable attribute to False for all layers except those in the last block. Here’s how you can implement this in code:
 
-Here’s the code to create the model using Keras’s Functional API. This model includes:
+# Assuming model is a list of layers as described
+class Layer:
+    def _init_(self, name):
+        self.name = name
+        self.trainable = True  # Default is trainable
 
-	1.	A Rescaling layer to normalize pixel values to the range ￼.
-	2.	The pretrained ResNet50 model, which has only the convolutional portion with an average pooling layer as the last layer.
-	3.	A classifier with one hidden layer (64 neurons with sigmoid activation) and an output layer with 10 neurons with softmax activation (suitable for classification).
+# Example model definition
+model = [
+    Layer('Conv2D_block_1'), Layer('Conv2D_block_1'), Layer('MaxPooling_block_1'),
+    Layer('Conv2D_block_2'), Layer('Conv2D_block_2'), Layer('MaxPooling_block_2'),
+    Layer('Conv2D_block_3'), Layer('Conv2D_block_3'), Layer('MaxPooling_block_3'),
+    Layer('Conv2D_block_4'), Layer('Conv2D_block_4'), Layer('MaxPooling_block_4'),
+    Layer('Conv2D_block_5'), Layer('Conv2D_block_5'), Layer('MaxPooling_block_5'),
+    Layer('Conv2D_block_6'), Layer('Conv2D_block_6'), Layer('MaxPooling_block_6')
+]
 
-from tensorflow.keras.layers import Input, Rescaling, Dense, Flatten
-from tensorflow.keras.models import Model
-from tensorflow.keras.applications import ResNet50
+# Determine the layers in the last block
+last_block_start_index = len(model) - 6  # Assuming each block has 3 layers (Conv2D, Conv2D, MaxPooling)
+last_block_layers = model[last_block_start_index:]
 
-# Input layer
-input_layer = Input(shape=(32, 32, 3))
+# Set all layers in the model to non-trainable
+for layer in model:
+    layer.trainable = False
 
-# Rescaling layer to ensure pixel values are in the range [0, 1]
-x = Rescaling(scale=1.0 / 255)(input_layer)
+# Set only the layers in the last block to trainable
+for layer in last_block_layers:
+    layer.trainable = True
 
-# Load the pretrained ResNet50 model (only the convolution portion, excluding the top classifier layers)
-# We set include_top=False to exclude the fully connected layers
-# Set pooling to 'avg' to add a global average pooling layer at the end of the ResNet model
-pretrained_model = ResNet50(include_top=False, pooling='avg', input_shape=(32, 32, 3))
-x = pretrained_model(x)
+# Output the trainable status of each layer for verification
+for layer in model:
+    print(f'Layer: {layer.name}, Trainable: {layer.trainable}')
+--------------------------------------------------------------------------------------------------------------------
+Explanation:
 
-# Flattening layer is not needed as pooling='avg' outputs a 1D tensor
+	1.	Layer Class: A simple class to represent layers with a name and a trainable attribute.
+	2.	Model Definition: A list of layers representing the structure of the pretrained model.
+	3.	Last Block Identification: The code identifies the last block by slicing the model list.
+	4.	Trainability Setting: It first sets all layers to trainable = False, and then sets the layers in the last block to trainable = True.
+	5.	Verification: The code prints the trainable status of each layer for confirmation.
 
-# Classifier portion
-x = Dense(64, activation='sigmoid')(x)
-output_layer = Dense(10, activation='softmax')(x)
-
-# Create the final model
-model = Model(inputs=input_layer, outputs=output_layer)
-
-This code constructs a Keras model using the ResNet50 pretrained convolutional base and builds a classifier on top with one hidden layer (64 neurons with sigmoid activation) and a 10-neuron output layer with softmax activation, suitable for multi-class classification. The Rescaling layer ensures that pixel values are normalized.
+This code will ensure that only the layers in the last block of your model are trainable.
