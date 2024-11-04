@@ -2,3 +2,40 @@ headers = {
     'Cache-Control': 'no-cache',  # Instructs the browser and server not to cache
     'Pragma': 'no-cache'          # HTTP/1.0 compatibility; often used with Cache-Control
 }
+.
+.
+.
+.
+.
+.
+Answer 1: Here’s the code for a convolutional neural network (CNN) using Keras’s Functional API based on your specifications
+
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Dense, Flatten
+from tensorflow.keras.models import Model
+
+# Input layer
+input_layer = Input(shape=(32, 32, 1))
+
+# Block 1
+x = Conv2D(filters=32, kernel_size=(3, 3), activation='relu', padding='valid', strides=(1, 1))(input_layer)
+x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(x)
+
+# Block 2
+x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='valid', strides=(1, 1))(x)
+x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(x)
+
+# Block 3
+x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='valid', strides=(1, 1))(x)
+x = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(x)
+
+# Flatten and classifier portion
+x = Flatten()(x)
+x = Dense(128, activation='relu')(x)
+
+# Output layer for a classification problem with 3 classes
+output_layer = Dense(3, activation='softmax')(x)
+
+# Create the model
+model = Model(inputs=input_layer, outputs=output_layer)
+
+This code sets up a CNN with three Conv/Pooling blocks with specified parameters. The final output layer has three neurons with a softmax activation, suitable for multi-class classification.
