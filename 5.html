@@ -1,1 +1,344 @@
+Que 1 : Using the self - attention mechanism(without trainable weights), what is the new context - aware vector for the input embedding at index = 2
+if the input are np.array([[1.927,0.956,-0.718,0.038,0.133],[0.678,-0.414,1.509,-0.806,0.716],[-0.603,1.594,-0.747,0.053,0.071],[0.735,-0.555,1.108,-0.926,1.646]])?
 
+#1
+import numpy as np
+
+# Input embeddings
+X = np.array([
+    [1.927, 0.956, -0.718, 0.038, 0.133],
+    [0.678, -0.414, 1.509, -0.806, 0.716],
+    [-0.603, 1.594, -0.747, 0.053, 0.071],
+    [0.735, -0.555, 1.108, -0.926, 1.646]
+])
+
+# Step 1: Compute similarity matrix (X @ X.T)
+similarity = np.dot(X, X.T)
+
+# Step 2: Apply softmax to each row
+def softmax(row):
+    exp_row = np.exp(row - np.max(row))  # Stability adjustment
+    return exp_row / exp_row.sum()
+
+attention = np.apply_along_axis(softmax, axis=1, arr=similarity)
+
+# Step 3: Compute new context-aware vectors
+context_vectors = np.dot(attention, X)
+
+# Step 4: Get the vector for index 2
+new_vector_index_2 = context_vectors[2]
+
+# Print the result
+print("New Context-Aware Vector for Index 2:", new_vector_index_2)
+
+======
+Ques 2
+
+Question 2: (CNN)
+
+
+X = np.array([
+    [1.812, -0.414, 0.348, -0.622, 0.727, -0.983, 0.51, -0.675],
+    [1.659, -0.069, -0.71, 1.283, -0.682, 0.84, 1.99, 0.925],
+    [1.893, -0.649, 0.624, 0.427, 0.831, 1.977, -0.43, 1.153],
+    [-0.101, -0.396, 0.688, -0.518, -0.491, 1.065, 1.897, -0.026],
+    [0.799, -0.129, -0.573, 1.025, -0.226, 1.34, 1.629, 1.067],
+    [0.444, -0.102, 1.42, 1.538, 0.282, 0.814, -0.58, 0.088],
+    [0.971, 0.034, 1.028, -0.756, -0.984, 1.832, 0.884, -0.373],
+    [-0.371,2.,0.883,.487,-.486,1.823,.18,-.717]
+])
+
+# Filter
+f = np.array([
+    [0, 2, -1],
+    [0, -2, -2],
+    [-2, 2, -1]
+])
+
+
+what is the value of the [1, 1] element of the convolutional output (roundedto 3 decimal places)?
+
+
+
+#2
+
+import numpy as np
+
+X = np.array([
+    [1.812, -0.414, 0.348, -0.622, 0.727, -0.983, 0.51, -0.675],
+    [1.659, -0.069, -0.71, 1.283, -0.682, 0.84, 1.99, 0.925],
+    [1.893, -0.649, 0.624, 0.427, 0.831, 1.977, -0.43, 1.153],
+    [-0.101, -0.396, 0.688, -0.518, -0.491, 1.065, 1.897, -0.026],
+    [0.799, -0.129, -0.573, 1.025, -0.226, 1.34, 1.629, 1.067],
+    [0.444, -0.102, 1.42, 1.538, 0.282, 0.814, -0.58, 0.088],
+    [0.971, 0.034, 1.028, -0.756, -0.984, 1.832, 0.884, -0.373],
+    [-0.371,2.,0.883,.487,-.486,1.823,.18,-.717]
+])
+
+# Filter
+f = np.array([
+    [0, 2, -1],
+    [0, -2, -2],
+    [-2, 2, -1]
+])
+
+# Padding the input
+X_padded = np.pad(X, pad_width=1, mode='constant', constant_values=0)
+
+# Extract the region for [1, 1] in the output
+region = X_padded[1:4, 1:4]
+
+# Perform element-wise multiplication and sum the result
+result = np.sum(region * f)
+
+# Round to 3 decimal places
+result = round(result, 3)
+
+print("The value of the [1, 1] element of the convolutional output is:", result)
+
+======
+
+que 3: Using a keras embedding layer, what would be the token embedding for the input at index 5 of input_ids = np.array([615,440,207,193,48,288,77,390]). The vocabulary size is 618 
+and the embedding dimension is 5?(you need to set the python random seed instead of that of numpy; the seed is 141.)
+
+#3
+ import tensorflow as tf
+import numpy as np
+import random
+
+# Set Python random seed
+random.seed(141)
+tf.random.set_seed(141)
+
+# Parameters
+vocab_size = 618
+embedding_dim = 5
+input_ids = np.array([615, 440, 207, 193, 48, 288, 77, 390])
+
+# Create an embedding layer
+embedding_layer = tf.keras.layers.Embedding(input_dim=vocab_size, output_dim=embedding_dim)
+
+# Get embeddings for the input
+embeddings = embedding_layer(input_ids)
+
+# Extract the embedding for the token at index 5
+token_embedding = embeddings.numpy()[5]
+
+print("Token embedding for index 5:", token_embedding)
+
+======================
+Ques 4
+You are going to fine-tune your model, which consists of the convolutional portion of VGG16 and your own classifier. 
+Your dassifier has 128 neurons in layer 1 (relu activation), 256 neurons in layer 2 (relu activation), and an output layer suitable for data that has 8 classes. 
+The input data has dimension (190, 190, 3), If you freeze the parameters in the first 6 convolutional layers, how many trainable parameters will this (entire) rietwork have? 
+(Be sure to scale and preprocess the data.) (CNN)
+
+#4
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Flatten, Dense, Input
+
+# Input shape
+input_shape = (190, 190, 3)
+
+# Load VGG16 without the top fully connected layers
+base_model = VGG16(weights='imagenet', include_top=False, input_shape=input_shape)
+
+# Freeze the first 6 convolutional layers
+for layer in base_model.layers[:6]:
+    layer.trainable = False
+
+# Add custom classifier layers
+x = Flatten()(base_model.output)
+x = Dense(128, activation='relu')(x)
+x = Dense(256, activation='relu')(x)
+out = Dense(8, activation='softmax')(x)
+
+# Create the complete model
+model = Model(inputs=base_model.input, outputs=out)
+
+# Summarize the model to get trainable parameters
+model.summary()
+
+# Calculate the total number of trainable parameters
+trainable_params = sum([np.prod(var.shape) for var in model.trainable_weights])
+print("Total trainable parameters:", trainable_params)
+
+===================
+ques 5
+
+For the input array X = p.array(| -6.154, -16.372, -23.737, -29.326, -28.524, -9.29, -20.811, 25.238, -14.771, 7.47 ]. [-9.838, -6.649, -4.004, 2.73, 29.199, 8.374, 28.275, -7.325, 5.614, 26.11 1. [18.412, -23.551, -3.365, 17,623, 20.529, 0.916, 10.31, -16.297, 5.181, 19.522], [7.315, -20.271, 6.998, -11.064, 4.768, 24.603, -1.143, 3.193, -10.12, 5.6331, (27.295, -8.029, -6.242, -8.806, 4.004, 20.622, -11.188, 0.863, -2.98, -28.104], [-10.488, 21.751, 8.933, 5.626, 20.66, -23.534, 22.399, -5.558, 19.849, 2.648]. [-9.073, -6.95, 11.276, 10.143, -11.741, -0.98, -24.245, 23.6, 14.62, 13.053], [19.072, -10.339, 4.015, -18.52, 18.417, 20.795, -4.31. -11.939, 4.58, 15.704], [ 26.076, 7.441, -18.734, 16.218, 29.659, -23.834, 17.67, 29.192, 20.288, -29.855), [27.747, -26.009, 14.056, 2.13, -0.612, -2.699, 3.893, -5,753, 25.493, 9.328]1), pool size = (3, 3), and strides = 2, what is the output of applying Average Pooling: ﻿﻿(l-6.649, -3.365, 8.374, 5.181], [-3.365, 4.004, 4.768, -1.143], [-6.242, 4.004, -0.98, 0.863), [ 4.015, 10.143, -0.98, 14.62 ]] ﻿﻿[|-8.362, -0.16, 8.158, 3.1641, [7.717, 2.716, 2.381, -0.445], [4.151, -2.097, 1.713, -2.465], [2.532, 2.511, 4.331, 4.526)] ﻿﻿[18362, 2.097.4.331, 1.713],0.16,2.716.8.158,2.4651[3.164,2.511.0.445,4.1511[2.532.4.526.2.381.7.717) (CNN)
+
+import numpy as np
+
+# Define the input array X
+X = np.array([
+    [-6.154, -16.372, -23.737, -29.326, -28.524, -9.29, -20.811, 25.238, -14.771, 7.47],
+    [-9.838, -6.649, -4.004, 2.73, 29.199, 8.374, 28.275, -7.325, 5.614, 26.11],
+    [18.412, -23.551, -3.365, 17.623, 20.529, 0.916, 10.31, -16.297, 5.181, 19.522],
+    [7.315, -20.271, 6.998, -11.064, 4.768, 24.603, -1.143, 3.193, -10.12, 5.633],
+    [27.295, -8.029, -6.242, -8.806, 4.004, 20.622, -11.188, 0.863, -2.98, -28.104],
+    [-10.488, 21.751, 8.933, 5.626, 20.66, -23.534, 22.399, -5.558, 19.849, 2.648],
+    [-9.073, -6.95, 11.276, 10.143, -11.741, -0.98, -24.245, 23.6, 14.62, 13.053],
+    [19.072, -10.339, 4.015, -18.52, 18.417, 20.795, -4.31, -11.939, 4.58, 15.704],
+    [26.076, 7.441, -18.734, 16.218, 29.659, -23.834, 17.67, 29.192, 20.288, -29.855]
+])
+
+# Pool size and stride
+pool_size = (3, 3)
+stride = 2
+
+# Function to apply average pooling
+def average_pooling(X, pool_size, stride):
+    # Get the output shape
+    output_height = (X.shape[0] - pool_size[0]) // stride + 1
+    output_width = (X.shape[1] - pool_size[1]) // stride + 1
+
+    # Initialize an empty output array
+    output = np.zeros((output_height, output_width))
+
+    # Apply average pooling
+    for i in range(output_height):
+        for j in range(output_width):
+            # Define the window
+            window = X[i*stride:i*stride+pool_size[0], j*stride:j*stride+pool_size[1]]
+            # Compute the average of the window
+            output[i, j] = np.mean(window)
+
+    return output
+
+# Apply the average pooling to the input array
+output = average_pooling(X, pool_size, stride)
+
+print("Average Pooling Output:\n", output)
+==================
+
+Ques 6
+
+Que 3: For the pretrained network MobileNetV2, what is the name of the layer at index 70 ? 1:block_7_add 2:block_7_project 3:block_7_project_BN (Correct)
+
+#3
+import tensorflow as tf
+
+# Load the MobileNetV2 model
+mobilenet_v2 = tf.keras.applications.MobileNetV2()
+
+# Get the name of the layer at index 70
+layer_name_at_index_70 = mobilenet_v2.layers[70].name
+
+print("Layer name at index 70:", layer_name_at_index_70)
+
+
+
+=========
+
+Question 7:
+
+Assuming samples are stored as the columns of your data array, use the following information to calculate the final output of the network for the sample at index 3: all layers have activations = relu, 
+
+X = np.array(I[ 6.486, 5.942, 9.033, 7.803, 3.715, 0.026, -2.14 ], [10., 1.886, 9.638, -2.785, -0.143, -2.985, 8.316], [ 2.224, -2.796, 1.044, -2.08, -1.893, -3.38, 6.223], [-4.771, -3.734, -4.477, -1.145, -0. , -0.761, 2.681], [-4.527, 0.685, -2.24 , 9.354, -2.31
+, -1.775, 10.5 ]. [10.57 , 6.148, 11.065, 10.361, -2.297, -3.392, -0.392], [11.106, 1.163, -3.681, 7.643, -0.101, 6.593, 1.655]]), W1 = np.array([I-0.558, 0.523, 1.795, 1.067, 1.395, 2.785, 1.9571, [ 2.886, -0.223, 1.207, 3.434, 3.889,
+3.981, -0.305]. [ 2.342, 0.549, -1.872, 2.256, -0.155, 0.191, 2.818], [ 1.202, 3.46 , 1.17 , -0.927, 1.594, 2.32, 1.399], [ 3.987, 1.982, 2.045, 0.255, 2.85, -1.958, -0.8271, [ 3.026, 3.816, 0.154, -1.901, -1.133, -0.399, 3.908]]). b1 =
+np.array([[ 0.9171, [0.421], [ 5.407], [-1.749], [ 1.81 ]. [ 1.9831]), W2 = np.array([-1.756, 0.518,-0.79, 2.024, -1.544, -0.568], [ 2.117, 1.778, 0.406, -0.748, 0.067, 0.047], [ 3.337, 2.847, 2.259, 2.488, 2.889, -1.895), [ 2.664, 0.149,
+3.97 , 1.969, -1.367, 3.504], [-1.906, 1.908, 2.199, 3.444, -1.867, -1.147], [ 2.994, 2.157, 3.72 , -0.478, -0.416, 0.786], [ 0.173, 0.511, 2.843, -1.399, 3.612, 0.74 ], [-0.728, -0.743, 1.615, -1.731, 1.499, 3.855]]), b2 = np.array([[ 1.7 ],
+[ 0.266], [4.441], [ 4.382), I-0.051], I-1.639], [ 4.841], [ 1.996]]), W3 = np.array([[ 1.022, 2.258, 0.014, 1.235, 0.292, 2.423, -1.327, 3.106], [ 0.516, -1.152, 0.703, 3.249, 0.204, 0.551, -0.369, 1.31 ], [ 0.609, 2.504, -1.784, -0.843,
+2.229, -0.942, 1.948, 1.186]]), and b3 = np.array([[1.125], [1.6 ], [0.166]]).
+
+  #7
+import numpy as np
+
+# Define data and parameters
+X = np.array([
+    [6.486, 5.942, 9.033, 7.803, 3.715, 0.026, -2.14],
+    [10.0, 1.886, 9.638, -2.785, -0.143, -2.985, 8.316],
+    [2.224, -2.796, 1.044, -2.08, -1.893, -3.38, 6.223],
+    [-4.771, -3.734, -4.477, -1.145, -0.0, -0.761, 2.681],
+    [-4.527, 0.685, -2.24, 9.354, -2.31, -1.775, 10.5],
+    [10.57, 6.148, 11.065, 10.361, -2.297, -3.392, -0.392],
+    [11.106, 1.163, -3.681, 7.643, -0.101, 6.593, 1.655],
+])
+
+W1 = np.array([
+    [-0.558, 0.523, 1.795, 1.067, 1.395, 2.785, 1.957],
+    [2.886, -0.223, 1.207, 3.434, 3.889, 3.981, -0.305],
+    [2.342, 0.549, -1.872, 2.256, -0.155, 0.191, 2.818],
+    [1.202, 3.46, 1.17, -0.927, 1.594, 2.32, 1.399],
+    [3.987, 1.982, 2.045, 0.255, 2.85, -1.958, -0.827],
+    [3.026, 3.816, 0.154, -1.901, -1.133, -0.399, 3.908],
+])
+
+b1 = np.array([[0.917], [0.421], [5.407], [-1.749], [1.81], [1.983]])
+
+W2 = np.array([
+    [-1.756, 0.518, -0.79, 2.024, -1.544, -0.568],
+    [2.117, 1.778, 0.406, -0.748, 0.067, 0.047],
+    [3.337, 2.847, 2.259, 2.488, 2.889, -1.895],
+    [2.664, 0.149, 3.97, 1.969, -1.367, 3.504],
+    [-1.906, 1.908, 2.199, 3.444, -1.867, -1.147],
+    [2.994, 2.157, 3.72, -0.478, -0.416, 0.786],
+    [0.173, 0.511, 2.843, -1.399, 3.612, 0.74],
+    [-0.728, -0.743, 1.615, -1.731, 1.499, 3.855],
+])
+
+b2 = np.array([[1.7], [0.266], [4.441], [4.382], [-0.051], [-1.639], [4.841], [1.996]])
+
+W3 = np.array([
+    [1.022, 2.258, 0.014, 1.235, 0.292, 2.423, -1.327, 3.106],
+    [0.516, -1.152, 0.703, 3.249, 0.204, 0.551, -0.369, 1.31],
+    [0.609, 2.504, -1.784, -0.843, 2.229, -0.942, 1.948, 1.186],
+])
+
+b3 = np.array([[1.125], [1.6], [0.166]])
+
+# ReLU function
+def relu(x):
+    return np.maximum(0, x)
+
+# Extract sample at index 3
+x = X[:, 3].reshape(-1, 1)
+
+# Layer 1
+z1 = np.dot(W1, x) + b1
+a1 = relu(z1)
+
+# Layer 2
+z2 = np.dot(W2, a1) + b2
+a2 = relu(z2)
+
+# Layer 3 (Output)
+z3 = np.dot(W3, a2) + b3
+
+# Final Output
+print("Final Output:", z3)
+
+
+
+  ============================
+
+que 8 : After creating a vocabulary based on the word-level(where a "word" is defined by whitespace) tokenization of "shakespare-macbeth.txt",what would be the encoded 
+ version of the following :"you? Ban i, my good lord: our time does call "?
+
+!wget https://www.gutenberg.org/files/1533/1533-0.txt -O shakespeare-macbeth.txt
+
+
+#5
+ # Import necessary libraries
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+# Load the Shakespeare Macbeth text
+with open("shakespeare-macbeth.txt", "r") as file:
+    text = file.read()
+
+# Tokenize the text
+tokenizer = Tokenizer(oov_token="<UNK>")  # Use <UNK> for out-of-vocabulary words
+tokenizer.fit_on_texts([text])  # Create the vocabulary based on the text
+
+# Vocabulary created
+vocab = tokenizer.word_index  # Dictionary of word -> index
+
+# Encode the given sentence
+sentence = "you? Ban i, my good lord: our time does call"
+encoded_sentence = tokenizer.texts_to_sequences([sentence])[0]
+
+# Print the encoded version
+print("Encoded Sentence:", encoded_sentence)
