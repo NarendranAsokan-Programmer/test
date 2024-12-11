@@ -262,3 +262,64 @@ print("Final output for sample at index 3:", Z3)
 output:
 
 (768.263, 607.206)
+-------------------------------------------------------------------------------------------------
+
+
+answer8: 
+import numpy as np
+
+# Input array X (10x10 matrix)
+X = np.array([
+    [-0.506, 1.538, 1.726, 0.354, 0.767, 1.167, 1.02, 0.298, -0.687, 1.582],
+    [-0.817, 0.918, -0.492, -0.568, 0.339, 1.598, -0.973, 1.076, -0.173, -0.728],
+    [0.476, -0.464, -0.986, -0.007, -0.285, 1.887, -0.375, 1.846, 1.114, 1.656],
+    [0.888, -0.818, 0.221, -0.73, -0.527, -0.691, 1.394, 1.44, -0.053, -0.664],
+    [-0.684, 1.902, 0.646, 0.015, 1.156, 1.696, -0.639, -0.173, -0.002, 1.947],
+    [0.873, 0.836, 1.553, -0.406, 0.23, -0.185, -0.469, 0.59, 0.64, 0.104],
+    [-0.473, -0.813, -0.838, 1.644, -0.184, -0.436, 0.423, 1.728, -0.841, 1.854],
+    [-0.474, 0.314, -0.109, -0.273, -0.966, -0.579, -0.142, -0.853, -0.072, 0.0813],
+    [-0.305, 1.041, -0.264, 1.498, 0.051, 0.463, 0.444, -0.772, 0.207, 0.1013],
+    [-0.109, -0.057, -0.945, 1.408, 1.899, 0.621, 0.644, 0.047, 0.488, -0.274]
+])
+
+# Filter f (3x3 matrix)
+f = np.array([
+    [-2, -2, -2],
+    [1, -2, 2],
+    [-1, -2, 2]
+])
+
+# Define the padding and stride
+padding = 'same'  # We are using 'same' padding
+stride = 1
+
+# Define the output shape based on the 'same' padding
+output_shape = X.shape
+
+# The convolution operation (no activation)
+def conv2d(X, f, stride, padding):
+    # Initialize the output array
+    output = np.zeros(output_shape)
+
+    # Apply convolution to each element
+    for i in range(1, X.shape[0]-1):
+        for j in range(1, X.shape[1]-1):
+            # Extract the region to apply the filter to
+            region = X[i-1:i+2, j-1:j+2]
+            
+            # Compute the element-wise multiplication and sum
+            output[i, j] = np.sum(region * f)
+    
+    return output
+
+# Apply convolution
+output = conv2d(X, f, stride, padding)
+
+# The value of the (1, 7) element of the output matrix
+result = round(output[1, 7], 3)
+
+# Print the result
+print("The value of the (1, 7) element is:", result)
+
+
+output: -5.822.
