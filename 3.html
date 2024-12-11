@@ -93,3 +93,42 @@ So, the correct answer is: block_9_add.
 -------------------------------------------------------------------------------------------------------
 
 answer3: [0.797, 1.491, -0.541, 0.806, -0.591, 0.141]
+
+
+-----------------------------------------------------------------------------------------------------
+
+
+answer4: 
+
+import numpy as np
+from tensorflow.keras.layers import Embedding
+from tensorflow.keras.models import Sequential
+import tensorflow as tf
+
+# Set the Python random seed (instead of NumPy)
+tf.random.set_seed(101)
+
+# Define parameters
+vocab_size = 851  # Vocabulary size
+embedding_dim = 5  # Embedding dimension
+
+# Define input sequence
+input_ids = np.array([575, 599, 75, 393, 552, 644, 575, 757, 316])  # Token IDs
+
+# Create an Embedding layer
+embedding_layer = Embedding(input_dim=vocab_size, output_dim=embedding_dim, input_length=len(input_ids))
+
+# Build the model and apply the embedding layer
+model = Sequential([embedding_layer])
+
+# Get the embedding for the input sequence
+embedding_output = model.predict(input_ids.reshape(1, -1))
+
+# Get the token embedding for the input at index 6 (zero-indexed)
+token_embedding = embedding_output[0][6]
+
+# Print the result
+print("Token embedding for input at index 6:", token_embedding)
+
+
+Output: [0.03529025, -0.0182544, 0.0399325, -0.01160529, 0.02337423].
