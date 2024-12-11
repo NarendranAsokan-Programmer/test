@@ -132,3 +132,31 @@ print("Token embedding for input at index 6:", token_embedding)
 
 
 Output: [0.03529025, -0.0182544, 0.0399325, -0.01160529, 0.02337423].
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+
+answer 5: 
+
+from tensorflow.keras.preprocessing.text import Tokenizer
+
+# Read the text file and build the vocabulary
+with open('whitman-leaves.txt', 'r') as file:
+    text = file.read()
+
+# Create a tokenizer and fit it on the text data to build the vocabulary
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts([text])
+
+# Sentence to be tokenized
+sentence = "8 I see the European headsman. He stands mask'd, clothed"
+
+# Tokenize the sentence
+encoded_sentence = tokenizer.texts_to_sequences([sentence])
+
+# Print the encoded version of the sentence
+print(encoded_sentence)
+
+
+output: [346, 1825, 18265, 20560, 1352, 11618, 1719, 19539, 14063, 6926].
